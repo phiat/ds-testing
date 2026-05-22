@@ -152,15 +152,24 @@ func UpdateCard(w http.ResponseWriter, r *http.Request) {
 	dueDate := r.FormValue("due_date")
 	imageURL := r.FormValue("image_url")
 
-	// Handle file upload if present
+	// Handle file upload if present — file takes priority over URL field
 	if file, header, err := r.FormFile("image_file"); err == nil {
 		defer file.Close()
 		ext := strings.ToLower(filepath.Ext(header.Filename))
-		if ext == ".jpg" || ext == ".jpeg" || ext == ".png" || ext == ".gif" || ext == ".webp" {
+		allowed := map[string]bool{
+			".jpg": true, ".jpeg": true, ".png": true, ".gif": true,
+			".webp": true, ".avif": true, ".svg": true, ".bmp": true,
+			".heic": true, ".heif": true, ".jfif": true, ".ico": true,
+		}
+		if allowed[ext] {
 			name := randomName() + ext
 			if err := saveUpload(file, name); err == nil {
 				imageURL = "/static/uploads/" + name
 			}
+		}
+		// File was selected but not savable — clear any stale URL
+		if imageURL == r.FormValue("image_url") {
+			imageURL = ""
 		}
 	}
 
@@ -175,8 +184,8 @@ func randomName() string {
 }
 
 func saveUpload(src io.Reader, name string) error {
-	os.MkdirAll("static/uploads", 0755)
-	dst, err := os.Create(filepath.Join("static/uploads", name))
+	os.MkdirAll("uploads", 0755)
+	dst, err := os.Create(filepath.Join("uploads", name))
 	if err != nil {
 		return err
 	}

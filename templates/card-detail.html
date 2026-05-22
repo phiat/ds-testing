@@ -4,7 +4,8 @@
     <form class="card-detail-form"
           hx-put="/cards/{{.Card.ID}}"
           hx-target="#board"
-          hx-swap="outerHTML">
+          hx-swap="outerHTML"
+          hx-encoding="multipart/form-data">
         <div class="detail-field">
             <input type="text" name="title" value="{{.Card.Title}}" required
                    class="input" autofocus

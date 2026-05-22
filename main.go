@@ -35,7 +35,7 @@ func main() {
 	staticHandler := http.StripPrefix("/static/", http.FileServer(http.FS(staticFS)))
 	mux.HandleFunc("GET /static/", func(w http.ResponseWriter, r *http.Request) {
 		if strings.HasPrefix(r.URL.Path, "/static/uploads/") {
-			http.StripPrefix("/static/", http.FileServer(http.Dir("static"))).ServeHTTP(w, r)
+			http.StripPrefix("/static/uploads/", http.FileServer(http.Dir("uploads"))).ServeHTTP(w, r)
 			return
 		}
 		staticHandler.ServeHTTP(w, r)

@@ -7,7 +7,7 @@ A single-user Kanban board built from scratch with a Go API backend and HTMX fro
 - Create, edit, and delete cards across multiple lanes
 - Tags with color coding
 - Due dates with status indicators
-- Image attachments
+- Image attachments (URL paste + file upload)
 - Full-text search
 - CSS animations for card transitions
 - Dark theme with Prussian Blue / Charcoal Blue palette
@@ -39,7 +39,12 @@ go build -o kanban .
 | 1 | Build a basic kanban from scratch: Go API/backend, HTMX frontend with nice subtle CSS with dark theme. Colors: Prussian Blue `#001b2e`, Charcoal Blue `#294c60`, Pale Slate `#adb6c4`, Papaya Whip `#ffefd3`, Peach Glow `#ffc49b`. No auth, single-user tool. | — | — | — |
 | 2 | Brainstorm 4-5 new features and add them (tags, assignment, image support, cool CSS animations) | — | — | — |
 | 3 | Fix contrast on dropdowns (white on light is hard to read), make cards 40% wider | — | — | — |
-| **Total** | | **~7.2M tokens** | **$0.13** | **~10 mins** |
+| 4 | nice, ok need to debug, i don't see the images after pasting in a link | — | — | — |
+| 5 | also need to be able upload images (not just links) | — | — | — |
+| 6 | Debug image display: non-direct URLs (Giphy pages) don't render as images | — | — | — |
+| 7 | Add image file upload (multipart form, random filenames, type validation) | — | — | — |
+| 8 | Fix uploaded file serving (embed.FS conflict) and expand supported formats | — | — | — |
+| **Total** | | **~12M tokens** | **$0.22** | **<25 mins** |
 
 ## License
 
