@@ -1,0 +1,47 @@
+{{define "card-detail.html"}}
+<div class="card card-detail card-tagged" id="card-{{.Card.ID}}"
+     {{if .Card.Tag}}style="--tag-color: {{tagColor .Card.Tag}}"{{end}}>
+    <form class="card-detail-form"
+          hx-put="/cards/{{.Card.ID}}"
+          hx-target="#board"
+          hx-swap="outerHTML">
+        <div class="detail-field">
+            <input type="text" name="title" value="{{.Card.Title}}" required
+                   class="input" autofocus
+                   placeholder="Card title">
+        </div>
+        <div class="detail-field">
+            <textarea name="description" class="input detail-textarea"
+                      placeholder="Description...">{{.Card.Description}}</textarea>
+        </div>
+        <div class="detail-row">
+            <div class="detail-field">
+                <label class="detail-label">Tag</label>
+                <select name="tag" class="input">
+                    <option value="">None</option>
+                    {{range .Tags}}
+                    <option value="{{.}}" {{if eq . $.Card.Tag}}selected{{end}}>{{tagLabel .}}</option>
+                    {{end}}
+                </select>
+            </div>
+            <div class="detail-field">
+                <label class="detail-label">Due date</label>
+                <input type="date" name="due_date" value="{{.Card.DueDate}}"
+                       class="input">
+            </div>
+        </div>
+        <div class="detail-field">
+            <label class="detail-label">Image URL</label>
+            <input type="url" name="image_url" value="{{.Card.ImageURL}}"
+                   class="input" placeholder="https://...">
+        </div>
+        <div class="detail-actions">
+            <button type="submit" class="btn btn-accent">Save</button>
+            <button type="button" class="btn"
+                    hx-get="/board"
+                    hx-target="#board"
+                    hx-swap="outerHTML">Cancel</button>
+        </div>
+    </form>
+</div>
+{{end}}

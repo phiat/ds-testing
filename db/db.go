@@ -3,6 +3,7 @@ package db
 import (
 	"database/sql"
 	"log"
+	"strings"
 
 	_ "modernc.org/sqlite"
 )
@@ -19,6 +20,9 @@ type Card struct {
 	LaneID      int64
 	Title       string
 	Description string
+	Tag         string
+	DueDate     string
+	ImageURL    string
 	Position    int
 	CreatedAt   string
 }
@@ -60,11 +64,56 @@ func Init(path string) error {
 		return err
 	}
 
+	// Migrations: add new columns if they don't exist
+	migrations := []string{
+		"ALTER TABLE cards ADD COLUMN tag TEXT NOT NULL DEFAULT ''",
+		"ALTER TABLE cards ADD COLUMN due_date TEXT NOT NULL DEFAULT ''",
+		"ALTER TABLE cards ADD COLUMN image_url TEXT NOT NULL DEFAULT ''",
+	}
+	for _, m := range migrations {
+		database.Exec(m) // ignore error if column already exists
+	}
+
 	log.Println("database initialized")
 	return nil
 }
 
 func DB() *sql.DB { return database }
+
+// TagColors maps tag names to their hex colors.
+var TagColors = map[string]string{
+	"bug":     "#e0556a",
+	"feature": "#6ebf8b",
+	"urgent":  "#ffc49b",
+	"chore":   "#8e9aaf",
+	"idea":    "#8eb8e5",
+}
+
+var TagNames = []string{"bug", "feature", "urgent", "chore", "idea"}
+
+func TagColor(tag string) string {
+	if c, ok := TagColors[tag]; ok {
+		return c
+	}
+	return "#adb6c4"
+}
+
+func TagLabel(tag string) string {
+	switch tag {
+	case "bug":
+		return "Bug"
+	case "feature":
+		return "Feature"
+	case "urgent":
+		return "Urgent"
+	case "chore":
+		return "Chore"
+	case "idea":
+		return "Idea"
+	default:
+		return ""
+	}
+}
 
 // --- Lanes ---
 
@@ -132,22 +181,30 @@ func CreateCard(laneID int64, title string) (*Card, error) {
 	return GetCard(id)
 }
 
+func scanCard(scanner interface{ Scan(...interface{}) error }) (*Card, error) {
+	var c Card
+	err := scanner.Scan(&c.ID, &c.LaneID, &c.Title, &c.Description, &c.Tag, &c.DueDate, &c.ImageURL, &c.Position, &c.CreatedAt)
+	if err != nil {
+		return nil, err
+	}
+	return &c, nil
+}
+
+const cardCols = "id, lane_id, title, description, tag, due_date, image_url, position, created_at"
+
 func GetCardsByLane(laneID int64) ([]Card, error) {
-	rows, err := database.Query(
-		"SELECT id, lane_id, title, description, position, created_at FROM cards WHERE lane_id = ? ORDER BY position",
-		laneID,
-	)
+	rows, err := database.Query("SELECT "+cardCols+" FROM cards WHERE lane_id = ? ORDER BY position", laneID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 	var cards []Card
 	for rows.Next() {
-		var c Card
-		if err := rows.Scan(&c.ID, &c.LaneID, &c.Title, &c.Description, &c.Position, &c.CreatedAt); err != nil {
+		c, err := scanCard(rows)
+		if err != nil {
 			return nil, err
 		}
-		cards = append(cards, c)
+		cards = append(cards, *c)
 	}
 	if cards == nil {
 		cards = []Card{}
@@ -156,17 +213,14 @@ func GetCardsByLane(laneID int64) ([]Card, error) {
 }
 
 func GetCard(id int64) (*Card, error) {
-	var c Card
-	err := database.QueryRow("SELECT id, lane_id, title, description, position, created_at FROM cards WHERE id = ?", id).
-		Scan(&c.ID, &c.LaneID, &c.Title, &c.Description, &c.Position, &c.CreatedAt)
-	if err != nil {
-		return nil, err
-	}
-	return &c, nil
+	return scanCard(database.QueryRow("SELECT "+cardCols+" FROM cards WHERE id = ?", id))
 }
 
-func UpdateCard(id int64, title, description string) error {
-	_, err := database.Exec("UPDATE cards SET title = ?, description = ? WHERE id = ?", title, description, id)
+func UpdateCard(id int64, title, description, tag, dueDate, imageURL string) error {
+	_, err := database.Exec(
+		"UPDATE cards SET title = ?, description = ?, tag = ?, due_date = ?, image_url = ? WHERE id = ?",
+		title, description, tag, dueDate, imageURL, id,
+	)
 	return err
 }
 
@@ -180,4 +234,58 @@ func MoveCard(id int64, toLaneID int64) error {
 func DeleteCard(id int64) error {
 	_, err := database.Exec("DELETE FROM cards WHERE id = ?", id)
 	return err
+}
+
+// SearchCards returns cards matching a text query and optional tag filter.
+func SearchCards(query, tag string) ([]Card, error) {
+	var rows *sql.Rows
+	var err error
+	if tag != "" && query != "" {
+		rows, err = database.Query(
+			"SELECT "+cardCols+" FROM cards WHERE tag = ? AND title LIKE ? ORDER BY position",
+			tag, "%"+query+"%",
+		)
+	} else if tag != "" {
+		rows, err = database.Query(
+			"SELECT "+cardCols+" FROM cards WHERE tag = ? ORDER BY position", tag,
+		)
+	} else if query != "" {
+		rows, err = database.Query(
+			"SELECT "+cardCols+" FROM cards WHERE title LIKE ? ORDER BY position", "%"+query+"%",
+		)
+	} else {
+		rows, err = database.Query("SELECT " + cardCols + " FROM cards ORDER BY position")
+	}
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var cards []Card
+	for rows.Next() {
+		c, err := scanCard(rows)
+		if err != nil {
+			return nil, err
+		}
+		cards = append(cards, *c)
+	}
+	if cards == nil {
+		cards = []Card{}
+	}
+	return cards, nil
+}
+
+// DueStatus returns a CSS class for the due date.
+func DueStatus(dueDate string) string {
+	if dueDate == "" {
+		return ""
+	}
+	now := strings.Split(strings.Split(dueDate, "T")[0], " ")[0]
+	due := strings.Split(dueDate, "T")[0]
+	if due < now {
+		return "overdue"
+	}
+	if due == now {
+		return "due-today"
+	}
+	return "due-future"
 }

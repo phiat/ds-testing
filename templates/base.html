@@ -10,15 +10,45 @@
 <body>
     <header class="app-header">
         <h1 class="app-title">kanban</h1>
-        <form class="add-lane-form"
-              hx-post="/lanes"
-              hx-target="#board"
-              hx-swap="outerHTML"
-              hx-on::after-request="this.reset()">
-            <input type="text" name="title" placeholder="New lane name..." required
-                   class="input">
-            <button type="submit" class="btn btn-accent">+ Add Lane</button>
-        </form>
+        <div class="header-controls">
+            <form class="search-form"
+                  hx-get="/search"
+                  hx-target="#board"
+                  hx-swap="outerHTML"
+                  hx-trigger="keyup changed delay:200ms from:.search-input, change from:.search-tag">
+                <input type="text" name="q" placeholder="Search cards..."
+                       class="input search-input"
+                       hx-get="/search"
+                       hx-target="#board"
+                       hx-swap="outerHTML"
+                       hx-trigger="keyup changed delay:200ms">
+                <select name="tag" class="search-tag"
+                        hx-get="/search"
+                        hx-target="#board"
+                        hx-swap="outerHTML"
+                        hx-trigger="change">
+                    <option value="">All tags</option>
+                    <option value="bug">Bug</option>
+                    <option value="feature">Feature</option>
+                    <option value="urgent">Urgent</option>
+                    <option value="chore">Chore</option>
+                    <option value="idea">Idea</option>
+                </select>
+                <a href="/" class="btn search-clear"
+                   hx-get="/board"
+                   hx-target="#board"
+                   hx-swap="outerHTML">Clear</a>
+            </form>
+            <form class="add-lane-form"
+                  hx-post="/lanes"
+                  hx-target="#board"
+                  hx-swap="outerHTML"
+                  hx-on::after-request="this.reset()">
+                <input type="text" name="title" placeholder="New lane name..." required
+                       class="input">
+                <button type="submit" class="btn btn-accent">+ Add Lane</button>
+            </form>
+        </div>
     </header>
     <main id="board">
         {{template "board.html" .}}

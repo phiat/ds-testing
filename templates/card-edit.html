@@ -4,8 +4,9 @@
       hx-target="#board"
       hx-swap="outerHTML">
     <input type="text" name="title" value="{{.Card.Title}}" required
-           class="input" style="min-width:0;width:100%;font-size:0.82rem;padding:0.35rem 0.5rem;"
+           class="input"
            autofocus
-           hx-on::blur="this.form.requestSubmit()">
+           hx-on::blur="this.form.requestSubmit()"
+           style="min-width:0;width:100%;font-size:0.84rem;padding:0.35rem 0.5rem;">
 </form>
 {{end}}

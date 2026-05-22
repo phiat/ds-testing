@@ -20,7 +20,10 @@ func main() {
 	}
 
 	tmpl := template.Must(template.New("").Funcs(template.FuncMap{
-		"dict": dict,
+		"dict":      dict,
+		"tagColor":  db.TagColor,
+		"tagLabel":  db.TagLabel,
+		"dueStatus": db.DueStatus,
 	}).ParseFS(assets, "templates/*.html"))
 
 	handlers.Init(tmpl)
@@ -39,10 +42,13 @@ func main() {
 	mux.HandleFunc("DELETE /lanes/{id}", handlers.DeleteLane)
 
 	mux.HandleFunc("GET /cards/{id}/edit", handlers.EditCardForm)
+	mux.HandleFunc("GET /cards/{id}/detail", handlers.EditCardDetail)
 	mux.HandleFunc("POST /cards", handlers.CreateCard)
 	mux.HandleFunc("PUT /cards/{id}", handlers.UpdateCard)
 	mux.HandleFunc("PUT /cards/{id}/move", handlers.MoveCard)
 	mux.HandleFunc("DELETE /cards/{id}", handlers.DeleteCard)
+
+	mux.HandleFunc("GET /search", handlers.SearchCards)
 
 	log.Println("kanban running on http://localhost:8080")
 	log.Fatal(http.ListenAndServe(":8080", mux))

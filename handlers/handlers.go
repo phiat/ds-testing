@@ -13,23 +13,49 @@ func Init(t *template.Template) {
 	tmpl = t
 }
 
-// BoardData is the view model for the full board.
 type BoardData struct {
 	Lanes []db.Lane
 	Cards map[int64][]db.Card
+	Query string
+	Tag   string
 }
 
 func getBoardData() BoardData {
+	return getFilteredBoardData("", "")
+}
+
+func getFilteredBoardData(query, tag string) BoardData {
 	lanes, _ := db.GetAllLanes()
-	cards := make(map[int64][]db.Card)
-	for _, l := range lanes {
-		cards[l.ID], _ = db.GetCardsByLane(l.ID)
+
+	var allCards []db.Card
+	if query != "" || tag != "" {
+		allCards, _ = db.SearchCards(query, tag)
+	} else {
+		for _, l := range lanes {
+			cards, _ := db.GetCardsByLane(l.ID)
+			allCards = append(allCards, cards...)
+		}
 	}
-	return BoardData{Lanes: lanes, Cards: cards}
+
+	cards := make(map[int64][]db.Card)
+	for _, c := range allCards {
+		cards[c.LaneID] = append(cards[c.LaneID], c)
+	}
+	// Ensure empty lanes still appear
+	for _, l := range lanes {
+		if cards[l.ID] == nil {
+			cards[l.ID] = []db.Card{}
+		}
+	}
+	return BoardData{Lanes: lanes, Cards: cards, Query: query, Tag: tag}
 }
 
 func renderBoard(w http.ResponseWriter) {
 	tmpl.ExecuteTemplate(w, "board.html", getBoardData())
+}
+
+func renderBoardWithData(w http.ResponseWriter, data BoardData) {
+	tmpl.ExecuteTemplate(w, "board.html", data)
 }
 
 // --- Pages ---
@@ -93,9 +119,17 @@ func CreateCard(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "title required", http.StatusBadRequest)
 		return
 	}
-	if _, err := db.CreateCard(laneID, title); err != nil {
+	card, err := db.CreateCard(laneID, title)
+	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
+	}
+	// Apply optional fields from quick create
+	if tag := r.FormValue("tag"); tag != "" {
+		db.UpdateCard(card.ID, card.Title, "", tag, "", "")
+	}
+	if imageURL := r.FormValue("image_url"); imageURL != "" {
+		db.UpdateCard(card.ID, card.Title, "", "", "", imageURL)
 	}
 	renderBoard(w)
 }
@@ -104,7 +138,10 @@ func UpdateCard(w http.ResponseWriter, r *http.Request) {
 	id, _ := strconv.ParseInt(r.PathValue("id"), 10, 64)
 	title := r.FormValue("title")
 	description := r.FormValue("description")
-	db.UpdateCard(id, title, description)
+	tag := r.FormValue("tag")
+	dueDate := r.FormValue("due_date")
+	imageURL := r.FormValue("image_url")
+	db.UpdateCard(id, title, description, tag, dueDate, imageURL)
 	renderBoard(w)
 }
 
@@ -115,7 +152,27 @@ func EditCardForm(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "card not found", http.StatusNotFound)
 		return
 	}
-	tmpl.ExecuteTemplate(w, "card-edit.html", map[string]interface{}{"Card": card})
+	lanes, _ := db.GetAllLanes()
+	tmpl.ExecuteTemplate(w, "card-edit.html", map[string]interface{}{
+		"Card":  card,
+		"Lanes": lanes,
+		"Tags":  db.TagNames,
+	})
+}
+
+func EditCardDetail(w http.ResponseWriter, r *http.Request) {
+	id, _ := strconv.ParseInt(r.PathValue("id"), 10, 64)
+	card, err := db.GetCard(id)
+	if err != nil {
+		http.Error(w, "card not found", http.StatusNotFound)
+		return
+	}
+	lanes, _ := db.GetAllLanes()
+	tmpl.ExecuteTemplate(w, "card-detail.html", map[string]interface{}{
+		"Card":  card,
+		"Lanes": lanes,
+		"Tags":  db.TagNames,
+	})
 }
 
 func MoveCard(w http.ResponseWriter, r *http.Request) {
@@ -129,4 +186,13 @@ func DeleteCard(w http.ResponseWriter, r *http.Request) {
 	id, _ := strconv.ParseInt(r.PathValue("id"), 10, 64)
 	db.DeleteCard(id)
 	renderBoard(w)
+}
+
+// --- Search ---
+
+func SearchCards(w http.ResponseWriter, r *http.Request) {
+	q := r.FormValue("q")
+	tag := r.FormValue("tag")
+	data := getFilteredBoardData(q, tag)
+	renderBoardWithData(w, data)
 }
