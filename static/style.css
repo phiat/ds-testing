@@ -111,7 +111,6 @@ body {
 }
 
 .search-tag:focus { border-color: var(--accent); }
-.search-tag option { background: var(--charcoal-blue); color: var(--text); }
 
 .search-clear {
     font-size: 0.75rem;
@@ -237,8 +236,8 @@ body {
     background: var(--surface);
     background-image: linear-gradient(180deg, rgba(255,239,211,0.015) 0%, transparent 40%);
     border-radius: var(--radius-lg);
-    min-width: 295px;
-    max-width: 295px;
+    min-width: 410px;
+    max-width: 410px;
     flex-shrink: 0;
     display: flex;
     flex-direction: column;
@@ -473,7 +472,6 @@ body {
 
 .move-select:hover { border-color: var(--border-hover); }
 .move-select:focus { border-color: var(--accent); }
-.move-select option { background: var(--charcoal-blue); color: var(--text); }
 
 /* ── Card detail form ── */
 .card-detail {
@@ -558,6 +556,21 @@ body {
     border-top: 1px solid var(--border);
 }
 
+/* ── Universal dropdown option styling ── */
+select {
+    color-scheme: dark;
+}
+
+select option {
+    background: var(--charcoal-blue);
+    color: var(--text);
+}
+
+select optgroup {
+    background: var(--charcoal-blue);
+    color: rgba(173,182,196,0.6);
+}
+
 /* ── Celebration: Done lane glow ── */
 .lane[id$="-done"] .card,
 .lane:last-child .card {
@@ -617,7 +630,7 @@ body {
 }
 
 .board-loading .skeleton-lane {
-    min-width: 295px;
+    min-width: 410px;
     height: 400px;
     border-radius: var(--radius-lg);
     background: linear-gradient(
