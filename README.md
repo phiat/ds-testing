@@ -1,5 +1,7 @@
 # ds-testing
 
+![kanban demo](static/kanban-ds-testing.gif)
+
 A single-user Kanban board built from scratch with a Go API backend and HTMX frontend, featuring a dark theme with subtle CSS.
 
 ## Features
