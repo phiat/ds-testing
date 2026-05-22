@@ -43,9 +43,8 @@ go build -o kanban .
 | 3 | Fix contrast on dropdowns (white on light is hard to read), make cards 40% wider | — | — | — |
 | 4 | nice, ok need to debug, i don't see the images after pasting in a link | — | — | — |
 | 5 | also need to be able upload images (not just links) | — | — | — |
-| 6 | Debug image display: non-direct URLs (Giphy pages) don't render as images | — | — | — |
-| 7 | Add image file upload (multipart form, random filenames, type validation) | — | — | — |
-| 8 | Fix uploaded file serving (embed.FS conflict) and expand supported formats | — | — | — |
+| 6-10 | ...various image upload/link fixes... | — | — | — |
+| 11 | nice, added a .gif here in project base. add to top of readme and move to a good spot in project| — | — | — |
 | **Total** | | **~14M tokens** | **$0.23** | **<25 mins** |
 
 ## License
