@@ -46,7 +46,7 @@ go build -o kanban .
 | 6 | Debug image display: non-direct URLs (Giphy pages) don't render as images | — | — | — |
 | 7 | Add image file upload (multipart form, random filenames, type validation) | — | — | — |
 | 8 | Fix uploaded file serving (embed.FS conflict) and expand supported formats | — | — | — |
-| **Total** | | **~12M tokens** | **$0.22** | **<25 mins** |
+| **Total** | | **~14M tokens** | **$0.23** | **<25 mins** |
 
 ## License
 
