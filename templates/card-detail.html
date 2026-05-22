@@ -35,6 +35,11 @@
             <input type="url" name="image_url" value="{{.Card.ImageURL}}"
                    class="input" placeholder="https://...">
         </div>
+        <div class="detail-field">
+            <label class="detail-label">Upload image</label>
+            <input type="file" name="image_file" accept="image/*"
+                   class="input" style="padding:0.35rem 0.5rem;font-size:0.78rem;">
+        </div>
         <div class="detail-actions">
             <button type="submit" class="btn btn-accent">Save</button>
             <button type="button" class="btn"

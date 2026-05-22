@@ -5,7 +5,7 @@
     {{if .Card.ImageURL}}
     <div class="card-image">
         <img src="{{.Card.ImageURL}}" alt="" loading="lazy"
-             onerror="this.parentElement.remove()">
+             onerror="this.style.display='none';this.insertAdjacentHTML('afterend','<div class=card-image-fallback>image failed to load</div>')">
     </div>
     {{end}}
     <div class="card-body">

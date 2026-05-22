@@ -391,6 +391,16 @@ body {
 
 .card:hover .card-image img { transform: scale(1.03); }
 
+.card-image-fallback {
+    margin: -0.7rem -0.8rem 0 -0.8rem;
+    padding: 1rem;
+    text-align: center;
+    font-size: 0.72rem;
+    color: rgba(224,85,106,0.6);
+    background: rgba(224,85,106,0.08);
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
+}
+
 /* Card meta: tags + due date */
 .card-meta {
     display: flex;

@@ -3,3 +3,4 @@ kanban.db
 kanban.db-*
 kanban
 *.exe
+static/uploads/

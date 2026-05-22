@@ -6,6 +6,7 @@ import (
 	"io/fs"
 	"log"
 	"net/http"
+	"strings"
 
 	"kanban/db"
 	"kanban/handlers"
@@ -31,7 +32,14 @@ func main() {
 	mux := http.NewServeMux()
 
 	staticFS, _ := fs.Sub(assets, "static")
-	mux.Handle("GET /static/", http.StripPrefix("/static/", http.FileServer(http.FS(staticFS))))
+	staticHandler := http.StripPrefix("/static/", http.FileServer(http.FS(staticFS)))
+	mux.HandleFunc("GET /static/", func(w http.ResponseWriter, r *http.Request) {
+		if strings.HasPrefix(r.URL.Path, "/static/uploads/") {
+			http.StripPrefix("/static/", http.FileServer(http.Dir("static"))).ServeHTTP(w, r)
+			return
+		}
+		staticHandler.ServeHTTP(w, r)
+	})
 
 	mux.HandleFunc("GET /", handlers.Index)
 	mux.HandleFunc("GET /board", handlers.Board)

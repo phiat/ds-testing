@@ -1,10 +1,16 @@
 package handlers
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"html/template"
+	"io"
 	"kanban/db"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strconv"
+	"strings"
 )
 
 var tmpl *template.Template
@@ -136,13 +142,47 @@ func CreateCard(w http.ResponseWriter, r *http.Request) {
 
 func UpdateCard(w http.ResponseWriter, r *http.Request) {
 	id, _ := strconv.ParseInt(r.PathValue("id"), 10, 64)
+
+	// Parse multipart form for file uploads (32 MB max)
+	r.ParseMultipartForm(32 << 20)
+
 	title := r.FormValue("title")
 	description := r.FormValue("description")
 	tag := r.FormValue("tag")
 	dueDate := r.FormValue("due_date")
 	imageURL := r.FormValue("image_url")
+
+	// Handle file upload if present
+	if file, header, err := r.FormFile("image_file"); err == nil {
+		defer file.Close()
+		ext := strings.ToLower(filepath.Ext(header.Filename))
+		if ext == ".jpg" || ext == ".jpeg" || ext == ".png" || ext == ".gif" || ext == ".webp" {
+			name := randomName() + ext
+			if err := saveUpload(file, name); err == nil {
+				imageURL = "/static/uploads/" + name
+			}
+		}
+	}
+
 	db.UpdateCard(id, title, description, tag, dueDate, imageURL)
 	renderBoard(w)
+}
+
+func randomName() string {
+	b := make([]byte, 12)
+	rand.Read(b)
+	return hex.EncodeToString(b)
+}
+
+func saveUpload(src io.Reader, name string) error {
+	os.MkdirAll("static/uploads", 0755)
+	dst, err := os.Create(filepath.Join("static/uploads", name))
+	if err != nil {
+		return err
+	}
+	defer dst.Close()
+	_, err = io.Copy(dst, src)
+	return err
 }
 
 func EditCardForm(w http.ResponseWriter, r *http.Request) {
