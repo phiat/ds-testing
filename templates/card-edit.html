@@ -1,0 +1,11 @@
+{{define "card-edit.html"}}
+<form class="card-edit-form"
+      hx-put="/cards/{{.Card.ID}}"
+      hx-target="#board"
+      hx-swap="outerHTML">
+    <input type="text" name="title" value="{{.Card.Title}}" required
+           class="input" style="min-width:0;width:100%;font-size:0.82rem;padding:0.35rem 0.5rem;"
+           autofocus
+           hx-on::blur="this.form.requestSubmit()">
+</form>
+{{end}}

@@ -1,0 +1,33 @@
+{{define "card.html"}}
+<div class="card" id="card-{{.Card.ID}}">
+    <div class="card-body">
+        <span class="card-title"
+              hx-get="/cards/{{.Card.ID}}/edit"
+              hx-trigger="click"
+              hx-target="closest .card-body"
+              hx-swap="outerHTML">{{.Card.Title}}</span>
+        {{if .Card.Description}}
+        <span class="card-desc">{{.Card.Description}}</span>
+        {{end}}
+    </div>
+    <div class="card-actions">
+        <select class="move-select"
+                hx-put="/cards/{{.Card.ID}}/move"
+                hx-target="#board"
+                hx-swap="outerHTML"
+                name="lane_id">
+            {{range .AllLanes}}
+            <option value="{{.ID}}" {{if eq .ID $.Card.LaneID}}selected{{end}}>{{.Title}}</option>
+            {{end}}
+        </select>
+        <button class="btn-icon btn-icon-danger"
+                hx-delete="/cards/{{.Card.ID}}"
+                hx-target="#board"
+                hx-swap="outerHTML"
+                hx-confirm="Delete this card?"
+                title="Delete card">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+    </div>
+</div>
+{{end}}

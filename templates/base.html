@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kanban</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="https://unpkg.com/htmx.org@2.0.10/dist/htmx.min.js"></script>
+</head>
+<body>
+    <header class="app-header">
+        <h1 class="app-title">kanban</h1>
+        <form class="add-lane-form"
+              hx-post="/lanes"
+              hx-target="#board"
+              hx-swap="outerHTML"
+              hx-on::after-request="this.reset()">
+            <input type="text" name="title" placeholder="New lane name..." required
+                   class="input">
+            <button type="submit" class="btn btn-accent">+ Add Lane</button>
+        </form>
+    </header>
+    <main id="board">
+        {{template "board.html" .}}
+    </main>
+</body>
+</html>

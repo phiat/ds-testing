@@ -1,0 +1,13 @@
+{{define "board.html"}}
+<div class="board" id="board">
+    {{if .Lanes}}
+        {{range .Lanes}}
+            {{template "lane.html" dict "Lane" . "Cards" (index $.Cards .ID) "AllLanes" $.Lanes}}
+        {{end}}
+    {{else}}
+        <div class="board-empty">
+            <p>No lanes yet. Create your first lane above.</p>
+        </div>
+    {{end}}
+</div>
+{{end}}
